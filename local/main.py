@@ -1,0 +1,1 @@
+/home/bernard/traveloka/workspace/repository/lambda/lambda_aws_health_notification/main.py
