@@ -1,4 +1,4 @@
-#!/home/bernard/traveloka/workspace/repository/lambda/lambda_aws_health_notification/bin/python
+#!/root/lambda/bin/python
 
 # $Id: rst2xetex.py 7847 2015-03-17 17:30:47Z milde $
 # Author: Guenter Milde

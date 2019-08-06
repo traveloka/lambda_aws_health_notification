@@ -1,4 +1,4 @@
-#!/home/bernard/traveloka/workspace/repository/lambda/lambda_aws_health_notification/bin/python
+#!/root/lambda/bin/python
 
 import sys
 import json

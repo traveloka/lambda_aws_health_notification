@@ -1,4 +1,4 @@
-#!/home/bernard/traveloka/workspace/repository/lambda/lambda_aws_health_notification/bin/python
+#!/root/lambda/bin/python
 
 # $Id: rst2pseudoxml.py 4564 2006-05-21 20:44:42Z wiemann $
 # Author: David Goodger <goodger@python.org>
