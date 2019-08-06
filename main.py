@@ -46,9 +46,9 @@ def lambda_handler(event, context):
         eventDescription=event_description,
         resources=affected_resources
     )
-    subject = "Amazon " + service + " Maintenance tvlk-prod"
-    print(message)
-    publish_to_sns(message, subject)
+    subject = "[Amazon " + service + " Maintenance] " + \
+        event['detail']['eventTypeCode']
+    #publish_to_sns(message, subject)
 
 if __name__ == "__main__":
     with open("event_example.json") as json_file:
