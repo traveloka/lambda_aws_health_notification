@@ -12,11 +12,18 @@ from base64 import b64decode
 
 
 # setup logger
-#logger = logging.getLogger()
-# logger.setLevel(logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-#slackChannel = os.environ["SLACK_CHANNEL"]
-#slackToken = os.environ["SLACK_TOKEN"]
+slackChannel = boto3.client('ssm').get_parameter(
+    Name="/tvlk-secret/tsiaihn/tsi/slack_channel",
+    WithDecryption=True
+)['Parameter']['Value']
+
+slackToken = boto3.client('ssm').get_parameter(
+    Name="/tvlk-secret/tsiaihn/tsi/slack_token",
+    WithDecryption=True
+)['Parameter']['Value']
 
 
 sc = slack.WebClient(token=slackToken)
@@ -26,7 +33,7 @@ def lambda_handler(event, context):
     """
     main lambda function for handling events of AWS infrastructure health notification
     """
-    #logger.info('Event: ' + str(event))
+    logger.info('Event: ' + str(event))
 
     service = event["detail"]["service"]
 
@@ -46,15 +53,15 @@ def lambda_handler(event, context):
             channels=slackChannel,
             content=message,
             filetype="post",
-            filename="Amazon " + service + " Scheduled Maintenance",
-            title="Amazon " + service + " Scheduled Maintenance"
+            filename="Amazon " + service.upper() + " Scheduled Maintenance",
+            title="Amazon " + service.upper() + " Scheduled Maintenance"
         )
-        print(response)
+        print(response['response_metadata'])
 
     except Exception as error:
         print(error)
 
-if __name__ == "__main__":
-    with open("event_example.json") as json_file:
-        data = json.load(json_file)
-        lambda_handler(data, "context")
+# if __name__ == "__main__":
+#    with open("event_example.json") as json_file:
+#        data = json.load(json_file)
+#        lambda_handler(data, "context")
