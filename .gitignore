@@ -1,4 +1,5 @@
 lib/*
 bin/*
 include/*
+Package/*
 *.zip
