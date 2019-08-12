@@ -20,7 +20,7 @@
         "eventDescription": [
             {
                 "language": "lang-code",
-                "latestDescription": "This is the message for"
+                "latestDescription": "This is the message for\n\nnothing"
             }
         ]
     }

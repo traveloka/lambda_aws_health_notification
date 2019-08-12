@@ -36,25 +36,32 @@ def lambda_handler(event, context):
     logger.info('Event: ' + str(event))
 
     service = event["detail"]["service"]
-
-    event_description = event['detail'][
+    eventTypeCategory = event["detail"]["eventTypeCategory"]
+    eventDescription = event['detail'][
         'eventDescription'][0]['latestDescription']
-    affected_resources = event['resources']
+    affectedResources = event['resources']
 
     template = jinja2.Environment(
         loader=jinja2.FileSystemLoader("./")
-    ).get_template("email_template.j2")
+    ).get_template("postTemplate.j2")
     message = template.render(
-        eventDescription=event_description,
-        resources=affected_resources
+        eventDescription=eventDescription,
+        resources=affectedResources
     )
+    postFileandTitle = "Amazon " + service.upper()
+    if eventTypeCategory == "scheduledChange":
+        postFileandTitle = postFileandTitle + " Scheduled Maintenance"
+    elif eventTypeCategory == "issue":
+        postFileandTitle = postFileandTitle + " Issue"
+    elif eventTypeCategory == "accountNotification":
+        postFileandTitle = postFileandTitle + " Account Notification"
     try:
         response = sc.files_upload(
             channels=slackChannel,
             content=message,
             filetype="post",
-            filename="Amazon " + service.upper() + " Scheduled Maintenance",
-            title="Amazon " + service.upper() + " Scheduled Maintenance"
+            filename=postFileandTitle,
+            title=postFileandTitle
         )
         print(response['response_metadata'])
 
