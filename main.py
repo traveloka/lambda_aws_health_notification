@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         loader=jinja2.FileSystemLoader("./")
     ).get_template("postTemplate.j2")
     message = template.render(
-        eventDescription=eventDescription,
+        eventDescription=eventDescription.replace("\\n", "\n"),
         resources=affectedResources
     )
     postFileandTitle = "Amazon " + service.upper()

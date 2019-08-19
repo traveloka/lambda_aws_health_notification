@@ -5,18 +5,20 @@ import jinja2
 import json
 import io
 
-from base64 import b64decode
+with open("event_example.json") as json_file:
+    event = json.load(json_file)
 
-slackChannel = boto3.client('ssm').get_parameter(
-    Name="/tvlk-secret/tsiaihn/tsi/slack_channel",
-    WithDecryption=True
-)['Parameter']['Value']
-
-slackToken = boto3.client('ssm').get_parameter(
-    Name="/tvlk-secret/tsiaihn/tsi/slack_token",
-    WithDecryption=True
-)['Parameter']['Value']
-
-print slackChannel
-
-print slackToken
+service = event["detail"]["service"]
+eventTypeCategory = event["detail"]["eventTypeCategory"]
+eventDescription = event['detail'][
+    'eventDescription'][0]['latestDescription']
+affectedResources = event['resources']
+template = jinja2.Environment(
+    loader=jinja2.FileSystemLoader("./")
+).get_template("postTemplate.j2")
+message = template.render(
+    eventDescription=eventDescription,
+    resources=affectedResources
+)
+print(eventDescription)
+print(message)
