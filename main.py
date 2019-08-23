@@ -25,8 +25,35 @@ slackToken = boto3.client('ssm').get_parameter(
     WithDecryption=True
 )['Parameter']['Value']
 
+ec2_client = boto3.client('ec2')
 
 sc = slack.WebClient(token=slackToken)
+
+
+def get_ec2_tags(instanceIds):
+    print("Getting EC2 Instances Tags")
+    instance_tags = []
+    try:
+        reservations = ec2_client.describe_instances(
+            InstanceIds=instanceIds
+        )
+        for reservation in reservations['Reservations']:
+            for instances in reservation['Instances']:
+                tag = {}
+                tag['InstanceId'] = instances['InstanceId']
+                for instance_tag in instances['Tags']:
+                    if instance_tag['Key'] == "ProductDomain":
+                        tag['ProductDomain'] = instance_tag['Value']
+                    if instance_tag['Key'] == "Service":
+                        tag['Service'] = instance_tag['Value']
+                instance_tags.append(tag)
+    except Exception as e:
+        print(e)
+    print(instance_tags)
+    return instance_tags
+
+
+# def get_rds_tags(dbInstanceIds):
 
 
 def lambda_handler(event, context):
@@ -39,8 +66,10 @@ def lambda_handler(event, context):
     eventTypeCategory = event["detail"]["eventTypeCategory"]
     eventDescription = event['detail'][
         'eventDescription'][0]['latestDescription']
-    affectedResources = event['resources']
-
+    resources = event['resources']
+    affectedResources = resources
+    if service == "EC2":
+        affectedResources = get_ec2_tags(resources)
     template = jinja2.Environment(
         loader=jinja2.FileSystemLoader("./")
     ).get_template("postTemplate.j2")

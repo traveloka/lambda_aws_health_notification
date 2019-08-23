@@ -5,20 +5,29 @@ import jinja2
 import json
 import io
 
-with open("event_example.json") as json_file:
-    event = json.load(json_file)
+ec2_client = boto3.client('ec2')
 
-service = event["detail"]["service"]
-eventTypeCategory = event["detail"]["eventTypeCategory"]
-eventDescription = event['detail'][
-    'eventDescription'][0]['latestDescription']
-affectedResources = event['resources']
-template = jinja2.Environment(
-    loader=jinja2.FileSystemLoader("./")
-).get_template("postTemplate.j2")
-message = template.render(
-    eventDescription=eventDescription,
-    resources=affectedResources
-)
-print(eventDescription)
-print(message)
+
+def get_ec2_tags(instanceIds):
+    instance_tags = []
+    try:
+        reservations = ec2_client.describe_instances(
+            InstanceIds=instanceIds
+        )
+        for reservation in reservations['Reservations']:
+            for instances in reservation['Instances']:
+                tag = {}
+                tag['InstanceId'] = instances['InstanceId']
+                for instance_tag in instances['Tags']:
+                    if instance_tag['Key'] == "ProductDomain":
+                        tag['ProductDomain'] = instance_tag['Value']
+                    if instance_tag['Key'] == "Service":
+                        tag['Service'] = instance_tag['Value']
+                instance_tags.append(tag)
+    except Exception as e:
+        print(e)
+    return instance_tags
+
+if __name__ == "__main__":
+    tag = get_ec2_tags(["i-038e508b1a2953d90", "i-0bdc3aca2f790e40d"])
+    print(tag)
