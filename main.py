@@ -26,6 +26,7 @@ slackToken = boto3.client('ssm').get_parameter(
 )['Parameter']['Value']
 
 ec2_client = boto3.client('ec2')
+rds_client = boto3.client('rds')
 
 sc = slack.WebClient(token=slackToken)
 
@@ -53,7 +54,47 @@ def get_ec2_tags(instanceIds):
     return instance_tags
 
 
-# def get_rds_tags(dbInstanceIds):
+def get_rds_arn(dbInstances):
+    print("Getting RDS DBInstances ARN")
+    dbInstancesArn = []
+    try:
+        rdsDbInstances = rds_client.describe_db_instances(
+            Filters=[
+                {
+                    'Name': 'db-instance-id',
+                    'Values': dbInstances
+                }
+            ]
+        )
+        for rdsDbInstance in rdsDbInstances['DBInstances']:
+            dbInstancesArn.append(rdsDbInstance['DBInstanceArn'])
+    except Exception as err:
+        print(err)
+    return dbInstancesArn
+
+
+def get_rds_tags(dbInstances):
+    print("Getting RDS DBInstances Tags")
+    dbInstanceArns = get_rds_arn(dbInstances)
+    db_instance_tags = []
+    i = 0
+    for dbInstanceArn in dbInstanceArns:
+        try:
+            reservations = rds_client.list_tags_for_resource(
+                ResourceName=dbInstanceArn
+            )
+            tag = {}
+            tag['InstanceId'] = dbInstances[i]
+            for instance_tag in reservations['TagList']:
+                if instance_tag['Key'] == "ProductDomain":
+                    tag['ProductDomain'] = instance_tag['Value']
+                if instance_tag['Key'] == "Service":
+                    tag['Service'] = instance_tag['Value']
+            db_instance_tags.append(tag)
+        except Exception as err:
+            print(err)
+        i = i + 1
+    return db_instance_tags
 
 
 def lambda_handler(event, context):
