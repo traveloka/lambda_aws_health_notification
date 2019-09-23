@@ -97,6 +97,15 @@ def get_rds_tags(dbInstances):
     return db_instance_tags
 
 
+def get_affected_resources(service, resources):
+    if "EC2" is service:
+        return get_ec2_tags(resources)
+    elif "RDS" is service:
+        return get_rds_tags(resources)
+    else:
+        return resources
+
+
 def lambda_handler(event, context):
     """
     main lambda function for handling events of AWS infrastructure health notification
@@ -108,9 +117,7 @@ def lambda_handler(event, context):
     eventDescription = event['detail'][
         'eventDescription'][0]['latestDescription']
     resources = event['resources']
-    affectedResources = resources
-    if service == "EC2":
-        affectedResources = get_ec2_tags(resources)
+    affectedResources = get_affected_resources(service, resources)
     template = jinja2.Environment(
         loader=jinja2.FileSystemLoader("./")
     ).get_template("postTemplate.j2")
