@@ -1,8 +1,9 @@
-{{eventDescription}}
-
 {%if resources is defined %}
 ## Affected resources
 {% for resource in resources %}
 - {{ resource.InstanceId }} | {{ resource.Service }} | {{resource.ProductDomain}}
 {% endfor %}
 {% endif%}
+
+## Description
+{{eventDescription}}

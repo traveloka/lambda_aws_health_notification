@@ -3,3 +3,5 @@ bin/*
 include/*
 Package/*
 *.zip
+.idea/
+venv/
