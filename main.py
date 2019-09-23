@@ -98,14 +98,14 @@ def get_rds_tags(dbInstances):
 
 
 def get_affected_resources(service, resources):
-    affectedResources=[]
-    if "EC2" is service:
-        affectedResources = get_ec2_tags(resources)
-    elif "RDS" is service:
-        affectedResources = get_rds_tags(resources)
+    affected_resources = []
+    if "EC2" == service:
+        affected_resources = get_ec2_tags(resources)
+    elif "RDS" == service:
+        affected_resources = get_rds_tags(resources)
 
-    # if affectedResources is empty, return raw resources
-    return affectedResources if affectedResources else resources
+    # if affected_resources is empty, return raw resources
+    return affected_resources if affected_resources else resources
 
 
 def lambda_handler(event, context):
