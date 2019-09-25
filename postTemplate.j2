@@ -3,6 +3,6 @@
 {%if resources is defined %}
 ## Affected resources
 {% for resource in resources %}
-- {{ resource.InstanceId }} | {{ resource.Service }} | {{resource.ProductDomain}}
+- {{ resource.InstanceId or resource }} | {{ resource.Service or 'N/A' }} | {{resource.ProductDomain or 'N/A'}}
 {% endfor %}
 {% endif%}
