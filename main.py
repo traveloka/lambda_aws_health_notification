@@ -27,6 +27,7 @@ slackToken = boto3.client('ssm').get_parameter(
 
 ec2_client = boto3.client('ec2')
 rds_client = boto3.client('rds')
+es_client = boto3.client('es')
 
 sc = slack.WebClient(token=slackToken)
 
@@ -53,25 +54,41 @@ def get_ec2_tags(instanceIds):
     print(instance_tags)
     return instance_tags
 
+def get_elastic_search_tags(esDomainNames):
+    esDomainArns = get_elastic_search_arn(esDomainNames)
+    esDomainTags = []
+    i=0
+    for esDomainArn in esDomainArns:
+        try:
+            response = es_client.list_tags(
+                ARN = esDomainArn
+            )
+            tag = {}
+            tag['InstanceId'] = esDomainNames[i]
+            for instance_tag in response['TagList']:
+                if instance_tag['Key'] == "ProductDomain":
+                    tag['ProductDomain'] = instance_tag['Value']
+                if instance_tag['Key'] == "Service":
+                    tag['Service'] = instance_tag['Value']
+            esDomainTags.append(tag)
+            i= i + 1
+        except Exception as error:
+            raise(error)
+    return esDomainTags
 
-def get_rds_arn(dbInstances):
-    print("Getting RDS DBInstances ARN")
-    dbInstancesArn = []
+def get_elastic_search_arn(esDomainNames):
+    print("Get Elastic search arns")
+    esDomainArns = []
     try:
-        rdsDbInstances = rds_client.describe_db_instances(
-            Filters=[
-                {
-                    'Name': 'db-instance-id',
-                    'Values': dbInstances
-                }
-            ]
+        response = es_client.describe_elasticsearch_domains(
+            DomainNames=esDomainNames
         )
-        for rdsDbInstance in rdsDbInstances['DBInstances']:
-            dbInstancesArn.append(rdsDbInstance['DBInstanceArn'])
-    except Exception as err:
-        print(err)
-    return dbInstancesArn
-
+        for domain in response['DomainStatusList']:
+            esDomainArns.append(domain['ARN'])
+    except Exception as error:
+        raise(error)
+    return esDomainArns
+        
 
 def get_rds_tags(dbInstances):
     print("Getting RDS DBInstances Tags")
@@ -96,6 +113,23 @@ def get_rds_tags(dbInstances):
         i = i + 1
     return db_instance_tags
 
+def get_rds_arn(dbInstances):
+    print("Getting RDS DBInstances ARN")
+    dbInstancesArn = []
+    try:
+        rdsDbInstances = rds_client.describe_db_instances(
+            Filters=[
+                {
+                    'Name': 'db-instance-id',
+                    'Values': dbInstances
+                }
+            ]
+        )
+        for rdsDbInstance in rdsDbInstances['DBInstances']:
+            dbInstancesArn.append(rdsDbInstance['DBInstanceArn'])
+    except Exception as err:
+        print(err)
+    return dbInstancesArn
 
 def get_affected_resources(service, resources):
     affected_resources = []
@@ -103,6 +137,8 @@ def get_affected_resources(service, resources):
         affected_resources = get_ec2_tags(resources)
     elif "RDS" == service:
         affected_resources = get_rds_tags(resources)
+    elif "ES" == service:
+        affected_resources = get_elastic_search_tags(resources)
 
     # if affected_resources is empty, return raw resources
     return affected_resources if affected_resources else resources
